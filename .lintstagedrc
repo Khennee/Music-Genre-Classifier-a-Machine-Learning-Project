@@ -1,5 +1,8 @@
 {
-  "frontend/**/*.{ts,tsx,js,jsx}": [
+  "frontend/components/**/*.{ts,tsx}": [
+    "bunx prettier --write"
+  ],
+  "frontend/app/**/*.{ts,tsx}": [
     "bunx prettier --write"
   ],
   "backend/**/*.py": [
