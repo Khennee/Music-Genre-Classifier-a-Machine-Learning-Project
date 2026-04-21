@@ -1,14 +1,11 @@
 {
-  "frontend/components/**/*.{ts,tsx}": [
+  "**/*.{ts,tsx,js,jsx}": [
     "bunx prettier --write"
   ],
-  "frontend/app/**/*.{ts,tsx}": [
-    "bunx prettier --write"
-  ],
-  "backend/**/*.py": [
+  "**/*.py": [
     "black"
   ],
-  "*.{json,md}": [
+  "**/*.{json,md}": [
     "bunx prettier --write"
   ]
 }
