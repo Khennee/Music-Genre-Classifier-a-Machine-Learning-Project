@@ -6,6 +6,13 @@
     "backend": "cd backend && . venv/bin/activate && python main.py",
     "build": "bun --cwd frontend build",
     "start": "bun --cwd frontend start",
-    "lint": "bun --cwd frontend lint"
+    "lint": "bun --cwd frontend lint",
+    "format": "bun format ./frontend/src --write",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.3"
   }
 }
