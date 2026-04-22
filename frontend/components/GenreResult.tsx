@@ -1,52 +1,57 @@
 "use client";
-import React, { useRef } from "react";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
+
+import React, { useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { ClassificationResults } from "@/types";
 
 interface GenreResultsProps {
-  results: { [key: string]: number };
+    results: ClassificationResults;
 }
 
 export default function GenreResults({ results }: GenreResultsProps) {
-  const container = useRef(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
-  useGSAP(
-    () => {
-      gsap.from(".result-bar", {
-        width: 0,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.1,
-        ease: "power2.out",
-      });
-    },
-    { scope: container, dependencies: [results] }
-  );
+    // Sort results to show highest probability first and slice to Top 5
+    const sortedEntries = Object.entries(results)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5); 
 
-  return (
-    <div
-      ref={container}
-      className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm space-y-6"
-    >
-      <h3 className="text-xl font-bold text-slate-800">
-        Classification Results
-      </h3>
-      <div className="space-y-5">
-        {Object.entries(results).map(([genre, probability]) => (
-          <div key={genre} className="space-y-2">
-            <div className="flex justify-between text-sm font-medium text-slate-600">
-              <span className="capitalize">{genre}</span>
-              <span>{(probability * 100).toFixed(1)}%</span>
-            </div>
-            <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-              <div
-                className="result-bar h-full bg-blue-500 rounded-full"
-                style={{ width: `${probability * 100}%` }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+    useEffect(() => {
+        if (containerRef.current) {
+            const bars = containerRef.current.querySelectorAll(".result-bar");
+            gsap.fromTo(bars,
+                { width: "0%" },
+                { 
+                    width: (i, target) => (target as HTMLElement).dataset.width + "%", 
+                    duration: 1.5, 
+                    stagger: 0.1, 
+                    ease: "elastic.out(1, 0.75)" 
+                }
+            );
+        }
+    }, [results]);
+
+    return (
+        <div ref={containerRef} className="space-y-5">
+            {sortedEntries.map(([genre, probability]) => {
+                const percentage = Math.round(probability * 100);
+                
+                return (
+                    <div key={genre} className="space-y-2 group">
+                        <div className="flex justify-between text-[10px] font-mono uppercase tracking-widest">
+                            <span className="text-slate-400 group-hover:text-white transition-colors">{genre}</span>
+                            <span className="text-purple-400">{percentage}%</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                            <div
+                                className="result-bar h-full bg-gradient-to-r from-purple-600 via-fuchsia-500 to-blue-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.4)]"
+                                data-width={percentage}
+                                style={{ width: "0%" }}
+                            />
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
 }

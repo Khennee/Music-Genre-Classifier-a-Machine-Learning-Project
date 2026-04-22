@@ -1,23 +1,59 @@
-# --- Mac Specific ---
-.DS_Store
-
-# --- Backend (Python) ---
+# =========================
+# Dependencies
+# =========================
+node_modules/
+frontend/node_modules/
 backend/venv/
 backend/__pycache__/
-backend/*.pyc
-backend/.pytest_cache/
-backend/ml_models/*.h5
-# (Optional: Ignore large datasets if you download them locally)
-backend/data/
 
-# --- Frontend (Next.js / Node) ---
-frontend/node_modules/
+# =========================
+# Python Artifacts
+# =========================
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+
+# =========================
+# Dataset / Model Artifacts
+# =========================
+backend/model/datasets/
+*.h5
+*.keras
+*.mar
+*.pkl
+
+# =========================
+# Build Outputs
+# =========================
+.next/
 frontend/.next/
-frontend/out/
-frontend/build/
-frontend/.eslintcache
+out/
+build/
+dist/
 
-# --- Environment Secrets ---
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Environment Variables
+# =========================
 .env
-.env.local
-*.env
+.env.*
+!.env.example
+
+# =========================
+# OS / Editor Files
+# =========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# =========================
+# Husky / Git Hooks
+# =========================
+.husky/_/
+backend/model/data.json
