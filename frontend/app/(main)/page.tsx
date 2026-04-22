@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import FileUploader from "@/components/FileUploader";
 import AudioVisualizer from "@/components/AudioVisualizer";
 import GenreResults from "@/components/GenreResult";
-import { BarChart3, ShieldCheck, Music, Zap, Search, Sparkles, Disc, MoveRight } from "lucide-react";
+import { Music, Zap, Search, Sparkles, Disc, MoveRight, X, Radio } from "lucide-react";
 import { ClassificationResults } from "@/types";
 import { gsap } from "gsap";
 
@@ -15,7 +15,6 @@ export default function MusicGenrePage() {
     const [results, setResults] = useState<ClassificationResults | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
 
-    // Refs for GSAP Animations
     const heroRef = useRef(null);
     const cardsRef = useRef<HTMLDivElement>(null);
 
@@ -33,9 +32,6 @@ export default function MusicGenrePage() {
         }
     }, [activeTab]);
 
-    /**
-     * Connects to the FastAPI backend and processes results with Temperature Scaling
-     */
     const handleFileSelect = async (selectedFile: File) => {
         setFile(selectedFile);
         setResults(null);
@@ -55,22 +51,14 @@ export default function MusicGenrePage() {
 
             const data = await response.json();
             const rawPredictions = data.all_predictions;
-
-            // --- PROBABILITY SOFTENING (TEMPERATURE SCALING) ---
-            // T > 1.0 makes the distribution "flatter" (more spread out)
-            // T = 1.0 is the original model output
             const T = 2.2; 
             
-            // 1. Convert to entries and cast values to numbers for TypeScript
             const softenedEntries = Object.entries(rawPredictions).map(([genre, val]) => {
                 const score = val as number; 
                 return [genre, Math.pow(score, 1 / T)];
             });
 
-            // 2. Calculate the new sum for normalization
             const newSum = softenedEntries.reduce((acc, [_, val]) => acc + (val as number), 0);
-
-            // 3. Normalize so that total probability equals 1.0 (100%)
             const finalResults = Object.fromEntries(
                 softenedEntries.map(([genre, val]) => [
                     genre, 
@@ -97,10 +85,10 @@ export default function MusicGenrePage() {
         <div className="min-h-screen bg-[#0a0a0c] text-slate-100 font-sans selection:bg-purple-500/30 overflow-x-hidden">
             <Header activeTab={activeTab} setActiveTab={setActiveTab} />
 
-            <main className="max-w-[1600px] mx-auto px-6 py-6 lg:py-10">
+            <main className="max-w-[1600px] mx-auto px-6 pt-0 pb-6 lg:pb-10">
                 {activeTab === "main" ? (
-                    /* --- LANDING TAB --- */
-                    <div className="min-h-[80vh] flex flex-col items-center justify-center relative">
+                    <div className="min-h-[70vh] flex flex-col items-center justify-center relative -mt-8">
+                        {/* Background Accents */}
                         <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
                             <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_-20%,#3b0764,transparent)]" />
                             <div className="grid grid-cols-12 gap-4 h-full w-full px-8">
@@ -110,13 +98,13 @@ export default function MusicGenrePage() {
                             </div>
                         </div>
 
-                        <div ref={heroRef} className="relative z-10 text-center space-y-8 mb-16">
+                        <div ref={heroRef} className="relative z-10 text-center space-y-6 mb-12 mt-8">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono text-purple-400 uppercase tracking-[0.2em]">
                                 <Sparkles size={12} />
-                                Neural Audio Processor
+                                Sonic Spectrum Analyzer
                             </div>
                             
-                            <h1 className="text-7xl lg:text-9xl font-bold tracking-tighter italic leading-[1.1]">
+                            <h1 className="text-7xl lg:text-9xl font-bold tracking-tighter italic leading-[1.0]">
                                 BIT{" "}
                                 <span className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-fuchsia-600 pr-[0.15em] -mr-[0.15em]">
                                     WAVE
@@ -124,7 +112,7 @@ export default function MusicGenrePage() {
                             </h1>
                             
                             <p className="text-slate-400 max-w-2xl mx-auto text-lg lg:text-xl font-light">
-                                A Machine Learning Project about genre classification and distribution.
+                                A Machine Learning Project about genre classification and distribution where we are looking at the entire spectrum of genres present in the track, much like a frequency visualizer looks at the entire spectrum of sound.
                             </p>
                             
                             <button 
@@ -139,41 +127,62 @@ export default function MusicGenrePage() {
                         <div ref={cardsRef} className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
                             <LandingCard icon={<Music size={24} />} title="Classification" desc="88.38% prediction accuracy across 16 genres." color="text-purple-500" />
                             <LandingCard icon={<Disc size={24} />} title="Spectral UI" desc="Low-latency frequency visualizers running at 60FPS." color="text-blue-500" />
-                            <LandingCard icon={<ShieldCheck size={24} />} title="Secure Node" desc="Model inference happens locally on your machine." color="text-emerald-500" />
+                            <LandingCard icon={<Radio size={24} />} title="Secure Node" desc="Model inference happens locally on your machine." color="text-emerald-500" />
                         </div>
                     </div>
                 ) : (
                     /* --- CLASSIFY TAB --- */
-                    <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-8 animate-in slide-in-from-bottom-4 duration-500 h-[calc(100vh-160px)]">
-                        <div className="flex flex-col gap-6 overflow-y-auto pr-2 custom-scrollbar">
-                            <div className="bg-[#0d0d11] border border-white/10 rounded-[2.5rem] p-6 shadow-2xl">
-                                <div className="flex items-center justify-between mb-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-8 animate-in slide-in-from-bottom-4 duration-500 h-[calc(100vh-140px)] mt-2">
+                        
+                        {/* LEFT COLUMN: FIXED STRUCTURE */}
+                        <div className="flex flex-col gap-6 h-full overflow-hidden">
+                            
+                            {/* PERMANENT SIGNAL STATUS CONTAINER */}
+                            <div className={`w-full flex items-center justify-between px-6 py-5 rounded-[2rem] border transition-all duration-500 ${
+                                file 
+                                ? "bg-red-500/5 border-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.05)]" 
+                                : "bg-white/[0.02] border-white/5 opacity-40"
+                            }`}>
+                                <div className="flex flex-col items-start min-w-0">
+                                    <span className={`text-[10px] font-bold uppercase tracking-widest ${file ? "text-red-500" : "text-slate-500"}`}>
+                                        {file ? "Signal Detected" : "No Active Signal"}
+                                    </span>
+                                    <span className={`text-xs font-mono truncate w-full mt-1 ${file ? "text-red-400" : "text-slate-600"}`}>
+                                        {file ? file.name : "Waiting for input..."}
+                                    </span>
+                                </div>
+                                
+                                {file && (
+                                    <button 
+                                        onClick={handleClear}
+                                        className="p-2.5 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all active:scale-90"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* NEURAL PREDICTIONS (SCROLLABLE AREA) */}
+                            <div className="flex-1 bg-[#0d0d11] border border-white/10 rounded-[2.5rem] p-6 shadow-2xl flex flex-col min-h-0 overflow-hidden">
+                                <div className="flex items-center justify-between mb-6 shrink-0">
                                     <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Neural Prediction</h3>
                                     <div className="px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 text-[10px] font-mono border border-purple-500/20 animate-pulse">LIVE</div>
                                 </div>
-                                {results ? <GenreResults results={results} /> : <LoadingPlaceholder isAnalyzing={isAnalyzing} />}
+                                <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                                    {results ? <GenreResults results={results} /> : <LoadingPlaceholder isAnalyzing={isAnalyzing} />}
+                                </div>
                             </div>
 
-                            <div className="flex-grow min-h-[180px]">
+                            {/* EXPANDED UPLOADER */}
+                            <div className="h-[220px] shrink-0">
                                 <FileUploader onFileSelect={handleFileSelect} />
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-3">
-                                <FactCard icon={<BarChart3 size={16}/>} label="MFCC Extraction" />
-                                <FactCard icon={<ShieldCheck size={16}/>} label="Optimized CNN" />
-                                <FactCard icon={<Search size={16}/>} label="Fourier Transform" />
                             </div>
                         </div>
 
+                        {/* RIGHT COLUMN: VISUALIZER AREA */}
                         <div className="h-full">
                             {file ? (
                                 <div className="relative h-full">
-                                    <button 
-                                        onClick={handleClear}
-                                        className="absolute top-6 right-6 z-40 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95"
-                                    >
-                                        Clear Track
-                                    </button>
                                     <AudioVisualizer file={file} />
                                 </div>
                             ) : (
@@ -204,18 +213,9 @@ function LandingCard({ icon, title, desc, color }: { icon: React.ReactNode, titl
     );
 }
 
-function FactCard({ icon, label }: { icon: React.ReactNode, label: string }) {
-    return (
-        <div className="flex items-center gap-4 px-5 py-4 rounded-2xl bg-white/[0.02] border border-white/5 text-[10px] font-mono text-slate-400 uppercase tracking-widest hover:bg-white/[0.04] transition-colors">
-            <span className="text-purple-500">{icon}</span>
-            {label}
-        </div>
-    );
-}
-
 function LoadingPlaceholder({ isAnalyzing }: { isAnalyzing: boolean }) {
     return (
-        <div className="flex flex-col items-center justify-center py-12 text-center rounded-3xl bg-black/20 border border-white/5">
+        <div className="flex flex-col items-center justify-center py-12 h-full text-center">
             <div className={`w-12 h-12 rounded-full border border-white/10 flex items-center justify-center mb-6 ${isAnalyzing ? 'animate-spin border-t-purple-500' : 'text-slate-700'}`}>
                 {isAnalyzing ? <Zap size={20} className="text-purple-500 fill-purple-500" /> : <Search size={20} />}
             </div>
