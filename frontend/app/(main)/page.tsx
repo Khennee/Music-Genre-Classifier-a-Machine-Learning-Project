@@ -1,99 +1,227 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Upload, Music, BarChart3, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import Header from "@/components/Header";
+import FileUploader from "@/components/FileUploader";
+import AudioVisualizer from "@/components/AudioVisualizer";
+import GenreResults from "@/components/GenreResult";
+import { BarChart3, ShieldCheck, Music, Zap, Search, Sparkles, Disc, MoveRight } from "lucide-react";
+import { ClassificationResults } from "@/types";
+import { gsap } from "gsap";
 
 export default function MusicGenrePage() {
-  const [dragActive, setDragActive] = useState(false);
+    const [activeTab, setActiveTab] = useState<"main" | "classify">("main");
+    const [file, setFile] = useState<File | null>(null);
+    const [results, setResults] = useState<ClassificationResults | null>(null);
+    const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
 
-  return (
-    <div className="min-h-screen bg-[#0a0a0c] text-slate-100 font-sans selection:bg-purple-500/30">
-      {/* Navbar Placeholder */}
-      <nav className="border-b border-white/5 bg-black/20 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
-              <Music size={18} className="text-white" />
-            </div>
-            <span className="font-bold text-xl tracking-tight">VibeCheck <span className="text-purple-500">AI</span></span>
-          </div>
-          <div className="hidden md:flex gap-8 text-sm font-medium text-slate-400">
-            <a href="#" className="hover:text-white transition-colors">Home</a>
-            <a href="#" className="hover:text-white transition-colors">Dataset</a>
-            <a href="#" className="hover:text-white transition-colors">How it works</a>
-          </div>
-        </div>
-      </nav>
+    // Refs for GSAP Animations
+    const heroRef = useRef(null);
+    const cardsRef = useRef<HTMLDivElement>(null);
 
-      <main className="max-w-5xl mx-auto px-6 py-12 md:py-20">
-        {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-6xl font-extrabold mb-6 bg-gradient-to-b from-white to-slate-500 bg-clip-text text-transparent">
-            Instant Music Genre <br/> Classification
-          </h1>
-          <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-            Upload your audio files and let our deep learning model analyze the frequencies to detect the genre with high precision.
-          </p>
-        </div>
+    useEffect(() => {
+        if (activeTab === "main") {
+            const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+            tl.fromTo(heroRef.current, 
+                { opacity: 0, y: 30 }, 
+                { opacity: 1, y: 0, duration: 1, delay: 0.2 }
+            ).fromTo(cardsRef.current?.children || [],
+                { opacity: 0, y: 20 },
+                { opacity: 1, y: 0, stagger: 0.1, duration: 0.6 },
+                "-=0.5"
+            );
+        }
+    }, [activeTab]);
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          {/* Left Column: Upload Area */}
-          <div className="lg:col-span-7 space-y-6">
-            <div 
-              onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
-              onDragLeave={() => setDragActive(false)}
-              className={`relative group cursor-pointer border-2 border-dashed rounded-3xl p-12 transition-all duration-300 flex flex-col items-center justify-center gap-4
-                ${dragActive ? 'border-purple-500 bg-purple-500/5 scale-[1.02]' : 'border-white/10 hover:border-white/20 bg-white/[0.02]'}
-              `}
-            >
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors ${dragActive ? 'bg-purple-500 text-white' : 'bg-white/5 text-slate-400 group-hover:text-white'}`}>
-                <Upload size={32} />
-              </div>
-              <div className="text-center">
-                <p className="text-lg font-semibold">Drop your audio here</p>
-                <p className="text-sm text-slate-500">Supports .mp3 and .wav (Max 10MB)</p>
-              </div>
-              <button className="mt-4 px-6 py-2 bg-white text-black font-bold rounded-full hover:bg-slate-200 transition-colors">
-                Browse Files
-              </button>
-            </div>
+    /**
+     * Connects to the FastAPI backend and processes results with Temperature Scaling
+     */
+    const handleFileSelect = async (selectedFile: File) => {
+        setFile(selectedFile);
+        setResults(null);
+        setIsAnalyzing(true);
+        setActiveTab("classify"); 
 
-            {/* Features Row */}
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { icon: <BarChart3 size={18}/>, label: 'MFCC Analysis' },
-                { icon: <ShieldCheck size={18}/>, label: '90%+ Accuracy' },
-                { icon: <Music size={18}/>, label: '10+ Genres' }
-              ].map((item, i) => (
-                <div key={i} className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col items-center gap-2 text-xs text-slate-400">
-                  <span className="text-purple-500">{item.icon}</span>
-                  {item.label}
-                </div>
-              ))}
-            </div>
-          </div>
+        const formData = new FormData();
+        formData.append("file", selectedFile);
 
-          {/* Right Column: Prediction Placeholder */}
-          <div className="lg:col-span-5 bg-white/[0.03] border border-white/10 rounded-3xl p-8 sticky top-28">
-            <h3 className="text-xl font-bold mb-6">Classification Result</h3>
+        try {
+            const response = await fetch("http://localhost:8000/predict", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!response.ok) throw new Error("Backend connection failed.");
+
+            const data = await response.json();
+            const rawPredictions = data.all_predictions;
+
+            // --- PROBABILITY SOFTENING (TEMPERATURE SCALING) ---
+            // T > 1.0 makes the distribution "flatter" (more spread out)
+            // T = 1.0 is the original model output
+            const T = 2.2; 
             
-            {/* Placeholder Empty State */}
-            <div className="flex flex-col items-center justify-center py-12 text-center border border-white/5 rounded-2xl bg-black/20">
-              <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center mb-4 text-slate-600">
-                ?
-              </div>
-              <p className="text-sm text-slate-500 max-w-[200px]">
-                Upload a file to see the AI prediction and confidence score.
-              </p>
-            </div>
+            // 1. Convert to entries and cast values to numbers for TypeScript
+            const softenedEntries = Object.entries(rawPredictions).map(([genre, val]) => {
+                const score = val as number; 
+                return [genre, Math.pow(score, 1 / T)];
+            });
 
-            {/* Hint Box */}
-            <div className="mt-8 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs leading-relaxed">
-              <strong>Tip:</strong> The model works best with 30-second clips. If you upload a full song, we&apos;ll analyze the middle portion for you.
-            </div>
-          </div>
+            // 2. Calculate the new sum for normalization
+            const newSum = softenedEntries.reduce((acc, [_, val]) => acc + (val as number), 0);
+
+            // 3. Normalize so that total probability equals 1.0 (100%)
+            const finalResults = Object.fromEntries(
+                softenedEntries.map(([genre, val]) => [
+                    genre, 
+                    (val as number) / (newSum || 1)
+                ])
+            );
+
+            setResults(finalResults as ClassificationResults);
+            
+        } catch (error) {
+            console.error("BIT WAVE Engine Error:", error);
+        } finally {
+            setIsAnalyzing(false);
+        }
+    };
+
+    const handleClear = () => {
+        setFile(null);
+        setResults(null);
+        setIsAnalyzing(false);
+    };
+
+    return (
+        <div className="min-h-screen bg-[#0a0a0c] text-slate-100 font-sans selection:bg-purple-500/30 overflow-x-hidden">
+            <Header activeTab={activeTab} setActiveTab={setActiveTab} />
+
+            <main className="max-w-[1600px] mx-auto px-6 py-6 lg:py-10">
+                {activeTab === "main" ? (
+                    /* --- LANDING TAB --- */
+                    <div className="min-h-[80vh] flex flex-col items-center justify-center relative">
+                        <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
+                            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_-20%,#3b0764,transparent)]" />
+                            <div className="grid grid-cols-12 gap-4 h-full w-full px-8">
+                                {[...Array(12)].map((_, i) => (
+                                    <div key={i} className="h-full w-px bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+                                ))}
+                            </div>
+                        </div>
+
+                        <div ref={heroRef} className="relative z-10 text-center space-y-8 mb-16">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono text-purple-400 uppercase tracking-[0.2em]">
+                                <Sparkles size={12} />
+                                Neural Audio Processor
+                            </div>
+                            
+                            <h1 className="text-7xl lg:text-9xl font-bold tracking-tighter italic leading-[1.1]">
+                                BIT{" "}
+                                <span className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-fuchsia-600 pr-[0.15em] -mr-[0.15em]">
+                                    WAVE
+                                </span>
+                            </h1>
+                            
+                            <p className="text-slate-400 max-w-2xl mx-auto text-lg lg:text-xl font-light">
+                                A Machine Learning Project about genre classification and distribution.
+                            </p>
+                            
+                            <button 
+                                onClick={() => setActiveTab("classify")}
+                                className="group relative px-8 py-4 bg-white text-black font-bold rounded-2xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3 mx-auto"
+                            >
+                                Launch Engine
+                                <MoveRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                            </button>
+                        </div>
+
+                        <div ref={cardsRef} className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
+                            <LandingCard icon={<Music size={24} />} title="Classification" desc="88.38% prediction accuracy across 16 genres." color="text-purple-500" />
+                            <LandingCard icon={<Disc size={24} />} title="Spectral UI" desc="Low-latency frequency visualizers running at 60FPS." color="text-blue-500" />
+                            <LandingCard icon={<ShieldCheck size={24} />} title="Secure Node" desc="Model inference happens locally on your machine." color="text-emerald-500" />
+                        </div>
+                    </div>
+                ) : (
+                    /* --- CLASSIFY TAB --- */
+                    <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-8 animate-in slide-in-from-bottom-4 duration-500 h-[calc(100vh-160px)]">
+                        <div className="flex flex-col gap-6 overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="bg-[#0d0d11] border border-white/10 rounded-[2.5rem] p-6 shadow-2xl">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Neural Prediction</h3>
+                                    <div className="px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 text-[10px] font-mono border border-purple-500/20 animate-pulse">LIVE</div>
+                                </div>
+                                {results ? <GenreResults results={results} /> : <LoadingPlaceholder isAnalyzing={isAnalyzing} />}
+                            </div>
+
+                            <div className="flex-grow min-h-[180px]">
+                                <FileUploader onFileSelect={handleFileSelect} />
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-3">
+                                <FactCard icon={<BarChart3 size={16}/>} label="MFCC Extraction" />
+                                <FactCard icon={<ShieldCheck size={16}/>} label="Optimized CNN" />
+                                <FactCard icon={<Search size={16}/>} label="Fourier Transform" />
+                            </div>
+                        </div>
+
+                        <div className="h-full">
+                            {file ? (
+                                <div className="relative h-full">
+                                    <button 
+                                        onClick={handleClear}
+                                        className="absolute top-6 right-6 z-40 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95"
+                                    >
+                                        Clear Track
+                                    </button>
+                                    <AudioVisualizer file={file} />
+                                </div>
+                            ) : (
+                                <div className="w-full h-full bg-[#0d0d11]/40 border border-dashed border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center text-slate-700">
+                                    <div className="p-8 rounded-full bg-white/[0.01] mb-6 border border-white/5">
+                                        <Disc size={48} className="opacity-10 animate-[spin_10s_linear_infinite]" />
+                                    </div>
+                                    <p className="text-[10px] font-mono uppercase tracking-[0.5em] opacity-30 text-center">Awaiting Audio Input Signal</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </main>
         </div>
-      </main>
-    </div>
-  );
+    );
+}
+
+/* --- SUB-COMPONENTS --- */
+
+function LandingCard({ icon, title, desc, color }: { icon: React.ReactNode, title: string, desc: string, color: string }) {
+    return (
+        <div className="p-8 rounded-[2.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all group cursor-default">
+            <div className={`${color} mb-4 group-hover:scale-110 transition-transform duration-500`}>{icon}</div>
+            <h3 className="font-bold mb-2 uppercase text-[10px] tracking-widest text-slate-300">{title}</h3>
+            <p className="text-slate-500 text-sm leading-relaxed font-light">{desc}</p>
+        </div>
+    );
+}
+
+function FactCard({ icon, label }: { icon: React.ReactNode, label: string }) {
+    return (
+        <div className="flex items-center gap-4 px-5 py-4 rounded-2xl bg-white/[0.02] border border-white/5 text-[10px] font-mono text-slate-400 uppercase tracking-widest hover:bg-white/[0.04] transition-colors">
+            <span className="text-purple-500">{icon}</span>
+            {label}
+        </div>
+    );
+}
+
+function LoadingPlaceholder({ isAnalyzing }: { isAnalyzing: boolean }) {
+    return (
+        <div className="flex flex-col items-center justify-center py-12 text-center rounded-3xl bg-black/20 border border-white/5">
+            <div className={`w-12 h-12 rounded-full border border-white/10 flex items-center justify-center mb-6 ${isAnalyzing ? 'animate-spin border-t-purple-500' : 'text-slate-700'}`}>
+                {isAnalyzing ? <Zap size={20} className="text-purple-500 fill-purple-500" /> : <Search size={20} />}
+            </div>
+            <p className="text-[10px] uppercase tracking-widest text-slate-500 px-8 leading-loose">
+                {isAnalyzing ? "Analyzing Frequency Spectrum..." : "Initialize Engine by Uploading a Track"}
+            </p>
+        </div>
+    );
 }

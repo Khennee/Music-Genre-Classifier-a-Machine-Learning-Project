@@ -41,7 +41,7 @@ The system is designed to demonstrate a full machine learning workflow including
         - Convolutional Neural Network (CNN)
     
     Dataset: 
-        - GTZAN
+        - FMA
 
     Communication: 
         - JSON via REST API
@@ -75,3 +75,14 @@ The system is designed to demonstrate a full machine learning workflow including
 
     Root: 
         - bun dev
+
+## Model Training
+
+    # 1. Prepare Data
+        python3 backend/model/data_preprocessing.py
+
+    # 2. Train Baseline (comparison tool)
+        python3 backend/model/train_baseline.py
+
+    # 3. Train Production Model
+        python3 backend/model/train_optimized.py
