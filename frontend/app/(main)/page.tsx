@@ -32,48 +32,67 @@ export default function MusicGenrePage() {
         }
     }, [activeTab]);
 
-    const handleFileSelect = async (selectedFile: File) => {
-        setFile(selectedFile);
-        setResults(null);
-        setIsAnalyzing(true);
-        setActiveTab("classify"); 
 
-        const formData = new FormData();
-        formData.append("file", selectedFile);
+const handleFileSelect = async (selectedFile: File) => {
+    setFile(selectedFile);
+    setResults(null);
+    setIsAnalyzing(true);
+    setActiveTab("classify"); 
 
-        try {
-            const response = await fetch("http://localhost:8000/predict", {
-                method: "POST",
-                body: formData,
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    try {
+        const response = await fetch("http://127.0.0.1:8000/predict", {
+            method: "POST",
+            body: formData,
+        });
+
+        if (!response.ok) throw new Error("Backend connection failed.");
+
+        const data = await response.json();
+        
+        const rawPredictions: Record<string, number> = {};
+        const nestedData = data.all_predictions;
+
+        if (nestedData && nestedData.top_3 && Array.isArray(nestedData.top_3)) {
+            nestedData.top_3.forEach((item: { genre: string, confidence: number }) => {
+                // Map "Pop" -> 0.9381 (scaling 0-100 to 0-1)
+                rawPredictions[item.genre] = item.confidence / 100;
             });
-
-            if (!response.ok) throw new Error("Backend connection failed.");
-
-            const data = await response.json();
-            const rawPredictions = data.all_predictions;
-            const T = 2.2; 
-            
-            const softenedEntries = Object.entries(rawPredictions).map(([genre, val]) => {
-                const score = val as number; 
-                return [genre, Math.pow(score, 1 / T)];
-            });
-
-            const newSum = softenedEntries.reduce((acc, [_, val]) => acc + (val as number), 0);
-            const finalResults = Object.fromEntries(
-                softenedEntries.map(([genre, val]) => [
-                    genre, 
-                    (val as number) / (newSum || 1)
-                ])
-            );
-
-            setResults(finalResults as ClassificationResults);
-            
-        } catch (error) {
-            console.error("BIT WAVE Engine Error:", error);
-        } finally {
-            setIsAnalyzing(false);
         }
-    };
+
+        // Final check before math
+        if (Object.keys(rawPredictions).length === 0) {
+            console.error("Mapping failed. Structure received:", data);
+            return;
+        }
+
+        // --- TEMPERATURE SCALING (T=2.2) ---
+        const T = 2.2; 
+        const softenedEntries = Object.entries(rawPredictions).map(([genre, val]) => {
+            const score = Number(val) || 0; 
+            return [genre, Math.pow(Math.max(score, 0.0001), 1 / T)];
+        });
+
+        const newSum = softenedEntries.reduce((acc, [_, val]) => acc + (val as number), 0);
+        const finalResults = Object.fromEntries(
+            softenedEntries.map(([genre, val]) => [
+                genre, 
+                (val as number) / (newSum || 1)
+            ])
+        );
+
+        setResults(finalResults as ClassificationResults);
+        
+    } catch (error) {
+        console.error("BIT WAVE Engine Error:", error);
+        setIsAnalyzing(false);
+        setFile(null);
+    } finally {
+        setIsAnalyzing(false);
+    }
+};
 
     const handleClear = () => {
         setFile(null);
@@ -88,7 +107,6 @@ export default function MusicGenrePage() {
             <main className="max-w-[1600px] mx-auto px-6 pt-0 pb-6 lg:pb-10">
                 {activeTab === "main" ? (
                     <div className="min-h-[70vh] flex flex-col items-center justify-center relative -mt-8">
-                        {/* Background Accents */}
                         <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
                             <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_-20%,#3b0764,transparent)]" />
                             <div className="grid grid-cols-12 gap-4 h-full w-full px-8">
@@ -112,7 +130,7 @@ export default function MusicGenrePage() {
                             </h1>
                             
                             <p className="text-slate-400 max-w-2xl mx-auto text-lg lg:text-xl font-light">
-                                A Machine Learning Project about genre classification and distribution where we are looking at the entire spectrum of genres present in the track, much like a frequency visualizer looks at the entire spectrum of sound.
+                                A Machine Learning Project looking at the entire spectrum of genres present in a track, much like a frequency visualizer looks at the entire spectrum of sound.
                             </p>
                             
                             <button 
@@ -125,19 +143,14 @@ export default function MusicGenrePage() {
                         </div>
 
                         <div ref={cardsRef} className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
-                            <LandingCard icon={<Music size={24} />} title="Classification" desc="88.38% prediction accuracy across 16 genres." color="text-purple-500" />
-                            <LandingCard icon={<Disc size={24} />} title="Spectral UI" desc="Low-latency frequency visualizers running at 60FPS." color="text-blue-500" />
-                            <LandingCard icon={<Radio size={24} />} title="Secure Node" desc="Model inference happens locally on your machine." color="text-emerald-500" />
+                            <LandingCard icon={<Music size={24} />} title="Classification" desc="High-fidelity genre identification." color="text-purple-500" />
+                            <LandingCard icon={<Disc size={24} />} title="Spectral UI" desc="Low-latency frequency visualizers." color="text-blue-500" />
+                            <LandingCard icon={<Radio size={24} />} title="Local Node" desc="Secure local model inference." color="text-emerald-500" />
                         </div>
                     </div>
                 ) : (
-                    /* --- CLASSIFY TAB --- */
                     <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-8 animate-in slide-in-from-bottom-4 duration-500 h-[calc(100vh-140px)] mt-2">
-                        
-                        {/* LEFT COLUMN: FIXED STRUCTURE */}
                         <div className="flex flex-col gap-6 h-full overflow-hidden">
-                            
-                            {/* PERMANENT SIGNAL STATUS CONTAINER */}
                             <div className={`w-full flex items-center justify-between px-6 py-5 rounded-[2rem] border transition-all duration-500 ${
                                 file 
                                 ? "bg-red-500/5 border-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.05)]" 
@@ -151,7 +164,6 @@ export default function MusicGenrePage() {
                                         {file ? file.name : "Waiting for input..."}
                                     </span>
                                 </div>
-                                
                                 {file && (
                                     <button 
                                         onClick={handleClear}
@@ -162,7 +174,6 @@ export default function MusicGenrePage() {
                                 )}
                             </div>
 
-                            {/* NEURAL PREDICTIONS (SCROLLABLE AREA) */}
                             <div className="flex-1 bg-[#0d0d11] border border-white/10 rounded-[2.5rem] p-6 shadow-2xl flex flex-col min-h-0 overflow-hidden">
                                 <div className="flex items-center justify-between mb-6 shrink-0">
                                     <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Neural Prediction</h3>
@@ -173,13 +184,11 @@ export default function MusicGenrePage() {
                                 </div>
                             </div>
 
-                            {/* EXPANDED UPLOADER */}
                             <div className="h-[220px] shrink-0">
                                 <FileUploader onFileSelect={handleFileSelect} />
                             </div>
                         </div>
 
-                        {/* RIGHT COLUMN: VISUALIZER AREA */}
                         <div className="h-full">
                             {file ? (
                                 <div className="relative h-full">
@@ -201,8 +210,7 @@ export default function MusicGenrePage() {
     );
 }
 
-/* --- SUB-COMPONENTS --- */
-
+/* --- SUB-COMPONENTS (Keep as provided) --- */
 function LandingCard({ icon, title, desc, color }: { icon: React.ReactNode, title: string, desc: string, color: string }) {
     return (
         <div className="p-8 rounded-[2.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all group cursor-default">
@@ -220,8 +228,16 @@ function LoadingPlaceholder({ isAnalyzing }: { isAnalyzing: boolean }) {
                 {isAnalyzing ? <Zap size={20} className="text-purple-500 fill-purple-500" /> : <Search size={20} />}
             </div>
             <p className="text-[10px] uppercase tracking-widest text-slate-500 px-8 leading-loose">
-                {isAnalyzing ? "Analyzing Frequency Spectrum..." : "Initialize Engine by Uploading a Track"}
+                {isAnalyzing 
+                    ? "Deep Scanning Audio Segments..." 
+                    : "Initialize Engine by Uploading a Track"
+                }
             </p>
+            {isAnalyzing && (
+                <p className="text-[9px] text-slate-600 mt-2 italic">
+                    Analyzing temporal distribution across 10 spectral chunks
+                </p>
+            )}
         </div>
     );
 }

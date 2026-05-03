@@ -5,7 +5,6 @@ from model_loader import GenreModel
 
 app = FastAPI(title="BitWave AI Engine")
 
-# Allow your Next.js frontend to communicate with this API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -14,8 +13,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize the classifier
-MODEL_DIR = os.path.join(os.path.dirname(__file__), "model")
+# Cross-platform path handling using os.path.join
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_DIR = os.path.join(BASE_DIR, "model")
+
 MODEL_CANDIDATES = [
     os.path.join(MODEL_DIR, "model.h5"),
     os.path.join(MODEL_DIR, "optimized_model.h5"),
@@ -40,20 +41,24 @@ async def predict_genre(file: UploadFile = File(...)):
     if not classifier:
         raise HTTPException(status_code=500, detail="Model not initialized.")
     
-    # Check file type
-    if not file.filename.endswith(('.wav', '.mp3', '.ogg')):
-        raise HTTPException(status_code=400, detail="Invalid file type. Please upload a WAV or MP3.")
+    if not file.filename.lower().endswith(('.wav', '.mp3', '.ogg')):
+        raise HTTPException(status_code=400, detail="Invalid file type.")
 
     try:
         content = await file.read()
-        result = classifier.predict(content)
-        return result
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raw_predictions = classifier.predict(content)
+        
+        print(f"DEBUG: Model Output -> {raw_predictions}")
+
+        if not raw_predictions:
+            raise ValueError("Model produced no results. Check data.json mapping.")
+
+        return {"all_predictions": raw_predictions}
+
     except Exception as e:
+        print(f"Inference Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
-    # Use "main:app" as a string to enable the reload feature properly
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, reload_dirs=["backend"])
