@@ -15,13 +15,20 @@ app.add_middleware(
 )
 
 # Initialize the classifier
-# Points to the model you just finished training!
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "model", "optimized_model.h5")
+MODEL_DIR = os.path.join(os.path.dirname(__file__), "model")
+MODEL_CANDIDATES = [
+    os.path.join(MODEL_DIR, "model.h5"),
+    os.path.join(MODEL_DIR, "optimized_model.h5"),
+    os.path.join(MODEL_DIR, "baseline_model.h5"),
+]
+MAPPING_PATH = os.path.join(MODEL_DIR, "data.json")
 
-if os.path.exists(MODEL_PATH):
-    classifier = GenreModel(MODEL_PATH)
+MODEL_PATH = next((path for path in MODEL_CANDIDATES if os.path.exists(path)), None)
+
+if MODEL_PATH:
+    classifier = GenreModel(MODEL_PATH, mapping_path=MAPPING_PATH)
 else:
-    print(f"ERROR: Model not found at {MODEL_PATH}")
+    print(f"ERROR: Model not found in {MODEL_DIR}")
     classifier = None
 
 @app.get("/")
@@ -41,6 +48,8 @@ async def predict_genre(file: UploadFile = File(...)):
         content = await file.read()
         result = classifier.predict(content)
         return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
