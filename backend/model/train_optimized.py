@@ -22,7 +22,6 @@ if __name__ == "__main__":
 
     input_shape = (X_train.shape[1], X_train.shape[2], 1)
     
-    # OPTIMIZED ARCHITECTURE
     model = keras.Sequential([
         # Layer 1
         keras.layers.Conv2D(64, (3, 3), activation='relu', input_shape=input_shape),
@@ -43,7 +42,7 @@ if __name__ == "__main__":
         keras.layers.Flatten(),
         keras.layers.Dense(256, activation='relu'),
         keras.layers.Dropout(0.4), # Prevents overfitting
-        keras.layers.Dense(16, activation='softmax') # CHANGED TO 8 FOR FMA
+        keras.layers.Dense(16, activation='softmax') 
     ])
 
     # Slower learning rate for better precision

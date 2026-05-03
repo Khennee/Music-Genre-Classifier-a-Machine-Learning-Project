@@ -45,7 +45,7 @@ export default function GenreResults({ results }: GenreResultsProps) {
                         <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
                             <div
                                 className="result-bar h-full bg-gradient-to-r from-purple-600 via-fuchsia-500 to-blue-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.4)]"
-                                data-width={percentage}
+                                data-width={percentage.toString()}
                                 style={{ width: "0%" }}
                             />
                         </div>
