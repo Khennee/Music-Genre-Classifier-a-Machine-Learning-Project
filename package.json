@@ -7,7 +7,7 @@
     "start": "bun --cwd frontend start",
     "lint": "bun --cwd frontend lint",
     "format": "bunx prettier --write \"frontend/**/*.{ts,tsx,json,md}\" && cd backend && . venv/bin/activate && black .",
-    "dev": "trap 'kill 0' EXIT; bun --cwd frontend dev && cd backend && . venv/bin/activate && python main.py"
+    "dev": "concurrently -n \"next,fastapi\" -c \"cyan,magenta\" \"bun frontend\" \"bun backend\""
   },
   "devDependencies": {
     "prettier": "^3.8.3"
