@@ -148,6 +148,7 @@ To ensure the Bit Wave engine remains performant and avoids Overfitting, the tra
 
     Root: 
         - bun dev
+        - Model Training (Refer Below)
 
 ## Model Training (Sequence)
 
