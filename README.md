@@ -1,14 +1,14 @@
 # Music-Genre-Classifier-a-Machine-Learning-Project
 
-Bit Wave is a deep learning-based web application that provides a multi-genre spectral analysis of audio files. Rather than a "winner-takes-all" classification, Bit Wave treats music as a blend of influences, identifying the Top 3 most prominent genres within a track. By utilizing a softened softmax distribution (Temperature scaling), the system reveals the nuanced relationship between different musical styles.
+    Bit Wave is a deep learning-based web application that provides a multi-genre spectral analysis of audio files. Rather than a "winner-takes-all" classification, Bit Wave treats music as a blend of influences, identifying the Top 3 most prominent genres within a track. By utilizing a softened softmax distribution (Temperature scaling), the system reveals the nuanced relationship between different musical styles.
 
-The application accepts .mp3 and .wav formats, processes audio into Mel-frequency cepstral coefficients (MFCCs), and performs inference using a Convolutional Neural Network (CNN).
+    The application accepts .mp3 and .wav formats, processes audio into Mel-frequency cepstral coefficients (MFCCs), and performs inference using a Convolutional Neural Network (CNN).
 
-We utilized Categorical Crossentropy as our loss function because we are performing multi-class classification across 8+ genres, and the Adam optimizer for its adaptive learning rate properties which helped in faster convergence during the training of the spectral CNN.
+    We utilized Categorical Crossentropy as our loss function because we are performing multi-class classification across 8+ genres, and the Adam optimizer for its adaptive learning rate properties which helped in faster convergence during the training of the spectral CNN.
 
 ## Temporal Averaging: The "Deep Scan" Engine
 
-Unlike standard classifiers that only analyze the first few seconds of a track, Bit Wave utilizes a Temporal Averaging (Chunk-based) approach to ensure accuracy across the entire song.
+    Unlike standard classifiers that only analyze the first few seconds of a track, Bit Wave utilizes a Temporal Averaging (Chunk-based) approach to ensure accuracy across the entire song.
 
     How it Works:
 
@@ -59,9 +59,19 @@ Most modern tracks are hybrids. A "Winner-Takes-All" system forces the model to 
 
         Neural Results: A dynamic results panel that displays the genre hierarchy, allowing users to see the "DNA" of their uploaded music.
 
+## Training Optimization: Early Stopping & Checkpointing
+
+    To ensure the Bit Wave engine remains performant and avoids Overfitting, the training pipeline implements an automated Early Stopping callback.
+
+    Patience-Based Termination: The training monitor tracks val_loss (Validation Loss). If the loss does not improve for 10 consecutive epochs, the process terminates automatically. This is why the production model may conclude training before reaching the maximum epoch limit (e.g., stopping at Epoch 20).
+
+    Best-Weights Restoration: Upon termination, the system ignores the final (potentially overfit) weights and instead restores the parameters from the specific epoch that achieved the lowest validation loss.
+
+    Learning Rate Reduction: We utilize a ReduceLROnPlateau callback that cuts the learning rate when the model hits a performance plateau, allowing for finer weight adjustments in the later stages of training.
+
 ## Prerequisites
 
-    - Python 3.9-3.10
+    - Python 3.9+ - 3.10+
     - Bun (install oven-sh/bun/bun)
     - FFmpeg (macOS: brew install ffmpeg, Windows: choco install ffmpeg)
 
