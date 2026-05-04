@@ -131,6 +131,7 @@ Most modern tracks are hybrids. A "Winner-Takes-All" system forces the model to 
 
 ## Model Training (Sequence)
 
+<<<<<<< Updated upstream
     1. Prepare Data
         python backend/model/data_preprocessing.py
 
