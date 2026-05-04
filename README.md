@@ -1,6 +1,6 @@
 # Music-Genre-Classifier-a-Machine-Learning-Project
 
-    Bit Wave is a deep learning-based web application that provides a multi-genre spectral analysis of audio files. Rather than a "winner-takes-all" classification, Bit Wave treats music as a blend of influences, identifying the Top 3 most prominent genres within a track. By utilizing a softened softmax distribution (Temperature scaling), the system reveals the nuanced relationship between different musical styles.
+Bit Wave is a deep learning-based web application that provides a multi-genre spectral analysis of audio files. Rather than a "winner-takes-all" classification, Bit Wave treats music as a blend of influences, identifying the Top 3 most prominent genres within a track. By utilizing a softened softmax distribution (Temperature scaling), the system reveals the nuanced relationship between different musical styles.
 
     The application accepts .mp3 and .wav formats, processes audio into Mel-frequency cepstral coefficients (MFCCs), and performs inference using a Convolutional Neural Network (CNN).
 
@@ -8,7 +8,7 @@
 
 ## Temporal Averaging: The "Deep Scan" Engine
 
-    Unlike standard classifiers that only analyze the first few seconds of a track, Bit Wave utilizes a Temporal Averaging (Chunk-based) approach to ensure accuracy across the entire song.
+Unlike standard classifiers that only analyze the first few seconds of a track, Bit Wave utilizes a Temporal Averaging (Chunk-based) approach to ensure accuracy across the entire song.
 
     How it Works:
 
@@ -61,7 +61,7 @@ Most modern tracks are hybrids. A "Winner-Takes-All" system forces the model to 
 
 ## Training Optimization: Early Stopping & Checkpointing
 
-    To ensure the Bit Wave engine remains performant and avoids Overfitting, the training pipeline implements an automated Early Stopping callback.
+To ensure the Bit Wave engine remains performant and avoids Overfitting, the training pipeline implements an automated Early Stopping callback.
 
     Patience-Based Termination: The training monitor tracks val_loss (Validation Loss). If the loss does not improve for 10 consecutive epochs, the process terminates automatically. This is why the production model may conclude training before reaching the maximum epoch limit (e.g., stopping at Epoch 20).
 
