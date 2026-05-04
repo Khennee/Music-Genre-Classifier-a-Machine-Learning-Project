@@ -55,6 +55,7 @@ Most modern tracks are hybrids. A "Winner-Takes-All" system forces the model to 
         Neural Results: A dynamic results panel that displays the genre hierarchy, allowing users to see the "DNA" of their uploaded music.
 
 ## Prerequisites
+
     - Python 3.9+
     - Bun (install oven-sh/bun/bun)
     - FFmpeg (brew install ffmpeg)
@@ -92,7 +93,7 @@ Most modern tracks are hybrids. A "Winner-Takes-All" system forces the model to 
         - Convolutional Neural Network (CNN)
     
     Dataset: 
-        - FMA (small)
+        - FMA (small) (Link: https://www.kaggle.com/datasets/imsparsh/fma-free-music-archive-small-medium/data?select=fma_metadata)
 
     Communication: 
         - JSON via REST API
@@ -106,6 +107,7 @@ Most modern tracks are hybrids. A "Winner-Takes-All" system forces the model to 
         - Return prediction + confidence scores
 
 ## SetUp
+
     Backend: 
         - cd backend
         - macOS: python3 -m venv venv
@@ -127,17 +129,22 @@ Most modern tracks are hybrids. A "Winner-Takes-All" system forces the model to 
     Root: 
         - bun dev
 
-## Model Training
+## Model Training (Sequence)
 
     1. Prepare Data
-        python3 backend/model/data_preprocessing.py
+        python backend/model/data_preprocessing.py
 
     2. Train Baseline (comparison tool)
-        python3 backend/model/train_baseline.py
+        python backend/model/train_baseline.py
 
     3. Train Production Model
-        python3 backend/model/train_optimized.py
+        python backend/model/train_optimized.py
 
 ## Machine Learning Files 
     
-    - backend/model
+    - backend/model/data_preprocessing.py
+    - backend/model/train_baseline.py
+    - backend/model/train_optimized.py
+    - backend/model/evaluations.ipynb
+    - backend/model_loader.py
+    - backend/main.py
