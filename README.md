@@ -4,6 +4,8 @@ Bit Wave is a deep learning-based web application that provides a multi-genre sp
 
 The application accepts .mp3 and .wav formats, processes audio into Mel-frequency cepstral coefficients (MFCCs), and performs inference using a Convolutional Neural Network (CNN).
 
+We utilized Categorical Crossentropy as our loss function because we are performing multi-class classification across 8+ genres, and the Adam optimizer for its adaptive learning rate properties which helped in faster convergence during the training of the spectral CNN.
+
 ## Temporal Averaging: The "Deep Scan" Engine
 
 Unlike standard classifiers that only analyze the first few seconds of a track, Bit Wave utilizes a Temporal Averaging (Chunk-based) approach to ensure accuracy across the entire song.
@@ -36,11 +38,14 @@ Most modern tracks are hybrids. A "Winner-Takes-All" system forces the model to 
 
     Reflects Model Uncertainty: If a song sits on the border between two genres, showing both is more honest than "flipping a coin" for a single label.
 
+    Mathematical Calibration: We use Temperature Scaling (T=2.2) to "soften" the Softmax output. This prevents the model from being over-confident in a single label and instead reveals the subtle secondary and tertiary genre influences that characterize complex tracks.
+
 
 ## Technical Workflow
+
     Backend (AI/ML Service)
 
-        Audio Processing: Uses Librosa to extract 13 MFCCs over 30-second segments.
+        Audio Processing: Uses Librosa to extract 40 MFCCs across 10 distributed 3-second segments to capture the song's global spectral profile.
 
         Softened Inference: Implements temperature scaling (T=2.2) on the backend to avoid over-confidence and provide a more realistic "genre mix."
 
@@ -120,6 +125,7 @@ Most modern tracks are hybrids. A "Winner-Takes-All" system forces the model to 
         - bun install
 
 ## How to run
+
     Frontend:
         - bun dev
 
