@@ -61,7 +61,7 @@ Most modern tracks are hybrids. A "Winner-Takes-All" system forces the model to 
 
 ## Prerequisites
 
-    - Python 3.9+
+    - Python 3.9-3.10
     - Bun (install oven-sh/bun/bun)
     - FFmpeg (macOS: brew install ffmpeg, Windows: choco install ffmpeg)
 
