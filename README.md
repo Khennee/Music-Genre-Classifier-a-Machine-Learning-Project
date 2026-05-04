@@ -123,6 +123,9 @@ Most modern tracks are hybrids. A "Winner-Takes-All" system forces the model to 
 
 ## SetUp
 
+    Root: 
+        - bun install
+
     Backend: 
         - cd backend
         - macOS: python3 -m venv venv
