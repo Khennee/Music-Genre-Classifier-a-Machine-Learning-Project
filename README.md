@@ -2,9 +2,9 @@
 
 Bit Wave is a deep learning-based web application that provides a multi-genre spectral analysis of audio files. Rather than a "winner-takes-all" classification, Bit Wave treats music as a blend of influences, identifying the Top 3 most prominent genres within a track. By utilizing a softened softmax distribution (Temperature scaling), the system reveals the nuanced relationship between different musical styles.
 
-    The application accepts .mp3 and .wav formats, processes audio into Mel-frequency cepstral coefficients (MFCCs), and performs inference using a Convolutional Neural Network (CNN).
+The application accepts .mp3 and .wav formats, processes audio into Mel-frequency cepstral coefficients (MFCCs), and performs inference using a Convolutional Neural Network (CNN).
 
-    We utilized Categorical Crossentropy as our loss function because we are performing multi-class classification across 8+ genres, and the Adam optimizer for its adaptive learning rate properties which helped in faster convergence during the training of the spectral CNN.
+We utilized Categorical Crossentropy as our loss function because we are performing multi-class classification across 8+ genres, and the Adam optimizer for its adaptive learning rate properties which helped in faster convergence during the training of the spectral CNN.
 
 ## Temporal Averaging: The "Deep Scan" Engine
 
