@@ -63,7 +63,7 @@ Most modern tracks are hybrids. A "Winner-Takes-All" system forces the model to 
 
     - Python 3.9+
     - Bun (install oven-sh/bun/bun)
-    - FFmpeg (brew install ffmpeg)
+    - FFmpeg (macOS: brew install ffmpeg, Windows: choco install ffmpeg)
 
 ## Frontend
 
@@ -117,7 +117,8 @@ Most modern tracks are hybrids. A "Winner-Takes-All" system forces the model to 
         - cd backend
         - macOS: python3 -m venv venv
         - Windows: python -m venv venv
-        - source venv/bin/activate
+        - macOS: source venv/bin/activate
+        - Windows: .\venv\Scripts\activate
         - pip install -r requirements.txt
 
     Frontend: 
