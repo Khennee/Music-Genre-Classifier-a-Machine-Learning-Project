@@ -132,13 +132,13 @@ Most modern tracks are hybrids. A "Winner-Takes-All" system forces the model to 
 ## Model Training (Sequence)
 
     1. Prepare Data
-        python3 backend/model/data_preprocessing.py
+        python backend/model/data_preprocessing.py
 
     2. Train Baseline (comparison tool)
-        python3 backend/model/train_baseline.py
+        python backend/model/train_baseline.py
 
     3. Train Production Model
-        python3 backend/model/train_optimized.py
+        python backend/model/train_optimized.py
 
 ## Machine Learning Files 
     
