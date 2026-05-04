@@ -18,8 +18,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_DIR = os.path.join(BASE_DIR, "model")
 
 MODEL_CANDIDATES = [
-    os.path.join(MODEL_DIR, "model.h5"),
     os.path.join(MODEL_DIR, "optimized_model.h5"),
+    os.path.join(MODEL_DIR, "model.h5"),
     os.path.join(MODEL_DIR, "baseline_model.h5"),
 ]
 MAPPING_PATH = os.path.join(MODEL_DIR, "data.json")
