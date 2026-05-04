@@ -38,6 +38,8 @@ Most modern tracks are hybrids. A "Winner-Takes-All" system forces the model to 
 
     Reflects Model Uncertainty: If a song sits on the border between two genres, showing both is more honest than "flipping a coin" for a single label.
 
+    Mathematical Calibration: We use Temperature Scaling (T=2.2) to "soften" the Softmax output. This prevents the model from being over-confident in a single label and instead reveals the subtle secondary and tertiary genre influences that characterize complex tracks.
+
 
 ## Technical Workflow
 
