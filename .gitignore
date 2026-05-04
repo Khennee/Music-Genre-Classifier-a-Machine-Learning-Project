@@ -20,7 +20,7 @@ backend/__pycache__/
 # Dataset / Model Artifacts
 # =========================
 backend/model/datasets/
-*.h5
+# *.h5
 *.keras
 *.mar
 *.pkl
